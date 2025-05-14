@@ -133,7 +133,7 @@ int main(int argc, char* argv[]) {
     for (int i = 0; i < m; ++i) {
         int u, v, t, x;
 
-        inputFile >> u >> v >> t >> x;
+        inputFile >> u >> v;
         //cout << u << "  " << v <<endl;
         arr1[i] = u;
         arr2[i] = v;
@@ -241,6 +241,79 @@ int main(int argc, char* argv[]) {
     for (int i = 0; i < n; i++) {
         std::cout << "Vertex " << i << ": " << dist[i] << std::endl;
     }
+
+    int* is_sink = new int[n](); // Dynamically allocate and initialize all elements to 0
+    for (size_t i = 0; i < sink.size(); i++) {
+        is_sink[sink[i]] = 1;
+    }
+
+    // Print the is_sink array
+    std::cout << "is_sink array:" << std::endl;
+    for (int i = 0; i < n; i++) {
+        std::cout << "is_sink[" << i << "] = " << is_sink[i] << std::endl;
+    }
+
+    std::vector<int> reordered_array; // Dynamic size array for non-sink vertices
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            if (dist[j] == i) {
+                reordered_array.push_back(j);
+                count[j] = -1; // Mark as visited
+            } else {
+                continue;
+            }
+        }
+    }
+
+
+    // Print the reordered array
+    std::cout << "Reordered array:" << std::endl;
+    for (size_t i = 0; i < reordered_array.size(); i++) {
+        std::cout << "reordered_array[" << i << "] = " << reordered_array[i] << std::endl;
+    }
+
+    // Remove pairs with count -1 from sorted pairs
+    // Update countPairs to reflect changes in count
+    for (auto& p : countPairs) {
+        p.first = count[p.second];
+    }
+
+    std::vector<std::pair<int, int>> filteredPairs;
+    for (const auto& p : countPairs) {
+        if (p.first != -1) {
+            filteredPairs.push_back(p);
+        }
+    }
+
+    countPairs=filteredPairs;
+
+    // Print the filtered pairs
+    std::cout << "Filtered count array with indices (excluding -1):" << std::endl;
+    for (const auto& p : countPairs) {
+        std::cout << "count: " << p.first << ", index: " << p.second << std::endl;
+    }
+
+    bfs(n, vertex, edges, countPairs[0].second, dist); // Call BFS with the vertex having the highest count
+
+    // Print the distances
+    std::cout << "Distances from source vertex " << countPairs[0].second << ":" << std::endl;
+    for (int i = 0; i < n; i++) {
+        if(count[i] == -1){
+            continue;
+        }
+        else
+        std::cout << "Vertex " << i << ": " << dist[i] << std::endl;
+    }
+
+    // // Print the count array
+    // std::cout << "Count array:" << std::endl;
+    // for (int i = 0; i < n; i++) {
+    //     std::cout << "count[" << i << "] = " << count[i] << std::endl;
+    // }
+
+
+
+
 
     delete[] dist; // Clean up dynamically allocated memory
 
