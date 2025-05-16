@@ -133,7 +133,7 @@ int main(int argc, char* argv[]) {
     for (int i = 0; i < m; ++i) {
         int u, v, t, x;
 
-        inputFile >> u >> v;
+        inputFile >> u >> v >> t >> x;
         //cout << u << "  " << v <<endl;
         arr1[i] = u;
         arr2[i] = v;
@@ -148,7 +148,7 @@ int main(int argc, char* argv[]) {
 
 
     // Print the CSR representation
-    std::cout << "CSR Representation:" << std::endl;
+   /* std::cout << "CSR Representation:" << std::endl;
 
     std::cout << "Vertex array:" << std::endl;
     for (int i = 0; i < n + 1; i++) {
@@ -158,7 +158,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Edges array:" << std::endl;
     for (int i = 0; i < m; i++) {
         std::cout << "edges[" << i << "] = " << edges[i] << std::endl;
-    }
+    }*/
 
     // // Example initialization (optional)
     // int vertex[n]={0,5,8,8,9,9,10,14,15,18,19,21,23};
@@ -170,10 +170,20 @@ int main(int argc, char* argv[]) {
 
     // Call BFS with the first vertex (index 0) as the source
     //bfs(n, ver, edges, 5, dist);
-
-
-
-    int* count = new int[m](); // Dynamically allocate and initialize all elements to 0
+    bool flag=1;
+    int* count = new int[n](); // Dynamically allocate and initialize all elements to 0
+    std::vector<int> sink(n, 0); // Initialize all elements to 0
+    sink.clear(); // Clear the vector to ensure it's empty before pushing back
+    for (int i = 0; i < n - 1; i++) {
+        if (vertex[i] == vertex[i + 1]) {
+            sink.push_back(i);
+        }
+    }
+    // Print the sink array
+    std::cout << "Sink vertices:" << std::endl;
+    for (size_t i = 0; i < sink.size(); i++) {
+        std::cout << "sink[" << i << "] = " << sink[i] << std::endl;
+    }
     for (int i = 0; i < m; i++) {
         count[edges[i]]++;
     }
@@ -182,23 +192,36 @@ int main(int argc, char* argv[]) {
     cout<<"Count of incoming edges"<<endl;
 
         // Print the array count
-        for (int i = 0; i < n; i++) {
+        /*for (int i = 0; i < n; i++) {
             std::cout << "count[" << i << "] = " << count[i] << std::endl;
+        }*/
+        std::vector<std::pair<int, int>> countPairs;
+
+        for (int i = 0; i < n; i++) {
+            countPairs.push_back(std::make_pair(count[i], i));
+        }
+        int* dist = new int[n]; // Array to store distances from the source vertex
+
+        int* is_sink = new int[n](); // Dynamically allocate and initialize all elements to 0
+        for (size_t i = 0; i < sink.size(); i++) {
+            is_sink[sink[i]] = 1;
         }
 
-    std::vector<int> sink(n, 0); // Initialize all elements to 0
-    sink.clear(); // Clear the vector to ensure it's empty before pushing back
-    for (int i = 0; i < n - 1; i++) {
-        if (vertex[i] == vertex[i + 1]) {
-            sink.push_back(i);
-        }
-    }
+            // Print the is_sink array
+    /*std::cout << "is_sink array:" << std::endl;
+    for (int i = 0; i < n; i++) {
+        std::cout << "is_sink[" << i << "] = " << is_sink[i] << std::endl;
+    }*/
+    
 
-    // Print the sink array
-    std::cout << "Sink vertices:" << std::endl;
-    for (size_t i = 0; i < sink.size(); i++) {
-        std::cout << "sink[" << i << "] = " << sink[i] << std::endl;
-    }
+
+while(flag==1){
+    flag=0;
+   
+
+
+
+
     // Print the distances
     // std::cout << "Distances from source vertex 0:" << std::endl;
     // for (int i = 0; i < n; i++) {
@@ -213,11 +236,8 @@ int main(int argc, char* argv[]) {
 
         
     // Create a vector of pairs to store count values along with their indices
-    std::vector<std::pair<int, int>> countPairs;
 
-    for (int i = 0; i < n; i++) {
-        countPairs.push_back(std::make_pair(count[i], i));
-    }
+
 
     // Sort the pairs based on the first value (count) in descending order
     std::sort(countPairs.begin(), countPairs.end(), [](const std::pair<int, int>& a, const std::pair<int, int>& b) {
@@ -230,10 +250,21 @@ int main(int argc, char* argv[]) {
         std::cout << "count: " << p.first << ", index: " << p.second << std::endl;
     }
 
-    int v = countPairs[0].second; // Get the index with the highest count
-    std::cout << "Starting BFS from vertex with highest count: " << v << std::endl;
+    n = countPairs.size();
 
-    int* dist = new int[n]; // Array to store distances from the source vertex
+    int v = -1;
+    for (size_t i = 0; i < countPairs.size(); ++i) {
+        if (is_sink[countPairs[i].second] == 0) { // Check if it's not a sink
+            v = countPairs[i].second; // Get the index with the highest count that's not a sink
+            break;
+        }
+    }
+    if (v == -1) {
+        std::cerr << "Error: No valid vertex found to start BFS." << std::endl;
+        break; // Exit the loop if no valid vertex is found
+    }
+   // std::cout << "Starting BFS from vertex with highest count: " << v << std::endl;
+
     bfs(n, vertex, edges, v, dist); // Call BFS with the vertex having the highest count
 
     // Print the distances
@@ -242,29 +273,36 @@ int main(int argc, char* argv[]) {
         std::cout << "Vertex " << i << ": " << dist[i] << std::endl;
     }
 
-    int* is_sink = new int[n](); // Dynamically allocate and initialize all elements to 0
-    for (size_t i = 0; i < sink.size(); i++) {
-        is_sink[sink[i]] = 1;
+
+
+
+    // Find the highest number in the dist array
+    int max_dist = -1;
+    for (int i = 0; i < n; i++) {
+        if (dist[i] > max_dist) {
+            max_dist = dist[i];
+        }
     }
 
-    // Print the is_sink array
-    std::cout << "is_sink array:" << std::endl;
-    for (int i = 0; i < n; i++) {
-        std::cout << "is_sink[" << i << "] = " << is_sink[i] << std::endl;
-    }
+    std::cout << "The highest number in the dist array is: " << max_dist << std::endl;
 
     std::vector<int> reordered_array; // Dynamic size array for non-sink vertices
-    for (int i = 0; i < n; i++) {
+    for (int i = 0; i < max_dist+10; i++) {
         for (int j = 0; j < n; j++) {
             if (dist[j] == i) {
+                if (is_sink[j] == 1) {
+                    continue; // Skip sink vertices
+                }
                 reordered_array.push_back(j);
+
+                //printf("Pushed %d to reordered_array\n", j);
+                
                 count[j] = -1; // Mark as visited
             } else {
                 continue;
             }
         }
     }
-
 
     // Print the reordered array
     std::cout << "Reordered array:" << std::endl;
@@ -282,18 +320,24 @@ int main(int argc, char* argv[]) {
     for (const auto& p : countPairs) {
         if (p.first != -1) {
             filteredPairs.push_back(p);
+            flag=1;
         }
     }
-
+    flag=0;
     countPairs=filteredPairs;
 
     // Print the filtered pairs
-    std::cout << "Filtered count array with indices (excluding -1):" << std::endl;
+    /*std::cout << "Filtered count array with indices (excluding -1):" << std::endl;
     for (const auto& p : countPairs) {
         std::cout << "count: " << p.first << ", index: " << p.second << std::endl;
-    }
+    }*/
 
-    bfs(n, vertex, edges, countPairs[0].second, dist); // Call BFS with the vertex having the highest count
+   // delete[] dist;
+    
+printf("Done\n");
+}
+
+    /*bfs(n, vertex, edges, countPairs[0].second, dist); // Call BFS with the vertex having the highest count
 
     // Print the distances
     std::cout << "Distances from source vertex " << countPairs[0].second << ":" << std::endl;
@@ -303,7 +347,7 @@ int main(int argc, char* argv[]) {
         }
         else
         std::cout << "Vertex " << i << ": " << dist[i] << std::endl;
-    }
+    }*/
 
     // // Print the count array
     // std::cout << "Count array:" << std::endl;
@@ -315,7 +359,7 @@ int main(int argc, char* argv[]) {
 
 
 
-    delete[] dist; // Clean up dynamically allocated memory
+     // Clean up dynamically allocated memory
 
 
 /*
