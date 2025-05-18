@@ -1,0 +1,8 @@
+nvcc -std=c++17 preprocess.cu -o preprocess
+preprocess.exe --help
+preprocess.exe graph_ex1.txt -g128 -w -d
+preprocess.exe ..\data\CollegeMsg_TG_csr_lr.txt
+
+nvcc -std=c++17 sssp.cu
+a.exe graph_ex1.txt 0
+a.exe graph_ex1.txt 4
