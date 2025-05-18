@@ -56,13 +56,7 @@ void bfs(const vector<int>& vertex,
     }
 
     // print
-    cout << "Vertex levels:\n";
-    int highest = 0;
-    for (int i = 0; i < N; i++) {
-        cout << "  " << i << " → " << level[i] << "\n";
-        highest = max(highest, level[i]);
-    }
-    cout << "Highest level = " << highest << endl;
+
 }
 
 int main(int argc, char* argv[]) {
@@ -103,7 +97,69 @@ int main(int argc, char* argv[]) {
 
     // run BFS
     vector<int> level;
+    auto start = chrono::high_resolution_clock::now();
     bfs(vertex, edges, N, source, level);
+    auto stop = chrono::high_resolution_clock::now();
+    chrono::duration<double> elapsed = stop - start;
+    cout << "BFS execution time: " << elapsed.count() << " seconds" << endl;
+// 1) Read mapping.txt
+std::string baseName = infile.substr(infile.find_last_of("/\\") + 1);
+std::string mappingFilePath = "Out_" + baseName + "/mapping.txt";
+std::ifstream mapFile(mappingFilePath);
+if (!mapFile) {
+    std::cerr << "Error: cannot open mapping.txt\n";
+    return 1;
+}
+
+// First pass: find out how many entries (max new_id + 1)
+int old_id, new_id;
+char ch;
+int max_new = -1;
+std::vector<std::pair<int,int>> entries;
+while (mapFile >> ch    // '('
+       >> old_id
+       >> ch            // ','
+       >> new_id
+       >> ch) {         // ')'
+    entries.emplace_back(new_id, old_id);
+    if (new_id > max_new) max_new = new_id;
+}
+mapFile.close();
+
+// 2) Build new_levels, initialize to -1
+std::vector<int> new_levels(max_new + 1, -1);
+for (auto &pr : entries) {
+    int nid = pr.first;
+    int oid = pr.second;
+    if (oid >= 0 && oid < (int)level.size())
+        new_levels[nid] = level[oid];
+}
+
+// 3) Print as CSV: "3, 1, 2, -1, ..."
+for (size_t i = 0; i < new_levels.size(); ++i) {
+    std::cout << new_levels[i];
+    if (i + 1 < new_levels.size())
+        std::cout << ", ";
+}
+std::cout << "\n";
+// Write the output to a file named "serial_out_<infile>"
+std::string outputFileName = "serial_out_" + infile.substr(infile.find_last_of("/\\") + 1);
+std::ofstream outFile(outputFileName);
+if (!outFile) {
+    std::cerr << "Error: cannot open output file\n";
+    return 1;
+}
+
+for (size_t i = 0; i < new_levels.size(); ++i) {
+    outFile << new_levels[i];
+    if (i + 1 < new_levels.size())
+        outFile << "\n";
+}
+outFile << "\n";
+outFile.close();
+cout << "BFS execution time: " << elapsed.count() * 1000 << " milliseconds" << endl;
+
+    
 
     return 0;
 }
